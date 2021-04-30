@@ -1,7 +1,7 @@
 #include <d3d9.h>
 #include <wrl\client.h>
 
-#pragma comment (lib, "d3d9.lib")
+#pragma comment (lib, "d3d9")
 
 using namespace Microsoft::WRL;
 
@@ -11,50 +11,55 @@ ComPtr<IDirect3D9Ex> d3dEx;
 ComPtr<IDirect3DDevice9> device;
 ComPtr<IDirect3DDevice9Ex> deviceEx;
 
-void KeyDown(UINT8 key) {
+void KeyDown(UINT8 key)
+{
 	if (GetAsyncKeyState(VK_ESCAPE))
 		exit(0);
 }
 
-void KeyUp(UINT8 key) {
+void KeyUp(UINT8 key)
+{
 
 }
 
-void Clear() {
+void Clear()
+{
 	d3d.ReleaseAndGetAddressOf();
 	d3dEx.ReleaseAndGetAddressOf();
 	device.ReleaseAndGetAddressOf();
 	deviceEx.ReleaseAndGetAddressOf();
 }
 
-void Update() {
+void Update()
+{
 
 }
 
-void Render() {
+void Render()
+{
 	if (deviceEx) {
 		deviceEx->BeginScene();
-		deviceEx->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(100, 149, 237, 1), 1.0f, 0);
+		deviceEx->Clear(NULL, nullptr, D3DCLEAR_TARGET, D3DCOLOR_RGBA(100, 149, 237, 1), 1.0f, NULL);
 		deviceEx->EndScene();
-		deviceEx->Present(NULL, NULL, NULL, NULL);
+		deviceEx->Present(nullptr, nullptr, nullptr, nullptr);
 		return;
 	}
 	else if (device) {
 		device->BeginScene();
-		device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(100, 149, 237, 1), 1.0f, 0);
+		device->Clear(NULL, nullptr, D3DCLEAR_TARGET, D3DCOLOR_RGBA(100, 149, 237, 1), 1.0f, NULL);
 		device->EndScene();
-		device->Present(NULL, NULL, NULL, NULL);
+		device->Present(nullptr, nullptr, nullptr, nullptr);
 		return;
 	}
 	else {
-		MessageBox(NULL, "Something went wrong.",
-			"Error", MB_ICONERROR);
+		MessageBox(nullptr, TEXT("Something went wrong."), TEXT("Error"), MB_ICONERROR);
 		exit(-1);
 	}
 }
 
-void Init(_In_ HWND hWnd) {
-	D3DPRESENT_PARAMETERS desc = {};
+void Init(_In_ HWND hWnd)
+{
+	D3DPRESENT_PARAMETERS desc{};
 	desc.BackBufferCount = 2;
 	desc.BackBufferFormat = D3DFMT_A8R8G8B8;
 	desc.SwapEffect = D3DSWAPEFFECT_DISCARD;
@@ -62,24 +67,23 @@ void Init(_In_ HWND hWnd) {
 	desc.Windowed = TRUE;
 
 	if (SUCCEEDED(Direct3DCreate9Ex(D3D_SDK_VERSION, &d3dEx))) {
-		d3dEx->CreateDeviceEx(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, NULL,
-			D3DCREATE_HARDWARE_VERTEXPROCESSING, &desc, NULL, &deviceEx);
+		d3dEx->CreateDeviceEx(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, nullptr, D3DCREATE_HARDWARE_VERTEXPROCESSING, &desc, nullptr, &deviceEx);
 		return;
 	}
 	else if (d3d = Direct3DCreate9(D3D_SDK_VERSION)) {
-		d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, NULL,
-			D3DCREATE_HARDWARE_VERTEXPROCESSING, &desc, &device);
+		d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, nullptr, D3DCREATE_HARDWARE_VERTEXPROCESSING, &desc, &device);
 		return;
 	}
 	else {
-		MessageBox(NULL, "Your GPU doesn't support DirectX 9.",
-			"Error", MB_ICONERROR);
+		MessageBox(nullptr, TEXT("Your GPU doesn't support DirectX 9."), TEXT("Error"), MB_ICONERROR);
 		exit(-1);
 	}
 }
 
-LRESULT CALLBACK WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam) {
-	switch (uMsg) {
+LRESULT CALLBACK WindowProc(_In_ HWND hWnd, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam)
+{
+	switch (message)
+	{
 	case WM_CREATE:
 		Init(hWnd);
 		return 0;
@@ -101,31 +105,39 @@ LRESULT CALLBACK WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 		Clear();
 		PostQuitMessage(0);
 		return 0;
+
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+	return 0;
 }
 
-int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance,
-	_In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
-	WNDCLASSEX wc = {};
-	wc.cbSize = sizeof(WNDCLASSEX);
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PTCHAR lpCmdLine, _In_ int nShowCmd)
+{
+	WNDCLASS wc{};
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = WindowProc;
 	wc.hInstance = hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = "WindowClass";
-	RegisterClassEx(&wc);
-	HWND hWnd = CreateWindow(wc.lpszClassName, "Test DirectX 9 for CreateDevice \\ CreateDeviceEx",
+	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wc.lpszClassName = TEXT("WindowClass");
+	RegisterClass(&wc);
+	
+	auto hWnd = CreateWindow(wc.lpszClassName, TEXT("Test DirectX 9 for CreateDeviceEx \\ CreateDevice"),
 		WS_SYSMENU | WS_MINIMIZEBOX,
 		(GetSystemMetrics(SM_CXSCREEN) - 1024) / 2,
 		(GetSystemMetrics(SM_CYSCREEN) - 576) / 2,
-		1024, 576, nullptr, nullptr, hInstance, 0);
-	ShowWindow(hWnd, nCmdShow);
-	MSG msg = {};
+		1024, 576, nullptr, nullptr, hInstance, NULL);
+	
+	ShowWindow(hWnd, nShowCmd);
+	UpdateWindow(hWnd);
+
+	MSG msg{};
 	while (msg.message != WM_QUIT)
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+		if (PeekMessage(&msg, nullptr, NULL, NULL, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-	return static_cast<char>(msg.wParam);
+
+	return (int)msg.wParam;
 }
